@@ -10,7 +10,7 @@ import re
 # Set page config
 st.set_page_config(page_title="Amazon Book Analyzer", layout="wide")
 
-# Function to get OpenRouter response
+# Function to get OpenRouter response with deepseek model
 def get_openrouter_response(prompt: str) -> str:
     api_key = st.secrets["OPENROUTER_API_KEY"]
     url = "https://openrouter.ai/api/v1/chat/completions"
@@ -21,7 +21,7 @@ def get_openrouter_response(prompt: str) -> str:
     }
     
     payload = {
-        "model": "amazon/nova-lite-v1",  # Replace with actual model if needed
+        "model": "deepseek/deepseek-r1-zero:free",  # Updated to requested model
         "messages": [{"role": "user", "content": prompt}]
     }
     
@@ -33,7 +33,7 @@ def get_openrouter_response(prompt: str) -> str:
         st.error(f"Error connecting to OpenRouter: {str(e)}")
         return None
 
-# Updated function to search related books
+# Function to search related books
 def search_related_products(product_name: str) -> List[Dict]:
     prompt = f"""Search Amazon for books related to '{product_name}'. Return a JSON list of up to 10 book URLs in this exact format: 
     ["url1", "url2", ...]. 
