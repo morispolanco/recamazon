@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 import pandas as pd
 from typing import List, Dict
 import os
+import re
 
 # Set page config
 st.set_page_config(page_title="Amazon Book Analyzer", layout="wide")
@@ -32,11 +33,11 @@ def get_openrouter_response(prompt: str) -> str:
         st.error(f"Error connecting to OpenRouter: {str(e)}")
         return None
 
-# Updated function to search related books with enhanced debugging
+# Updated function to search related books with improved handling
 def search_related_products(product_name: str) -> List[Dict]:
-    prompt = f"""Search Amazon for books related to '{product_name}' and return a JSON list of up to 10 book URLs in this exact format: 
+    prompt = f"""Search Amazon for books related to '{product_name}'. Return a JSON list of up to 10 book URLs in this exact format: 
     ["url1", "url2", ...]. 
-    Only include books, no other product types. Ensure the response is valid JSON."""
+    Only include books, no other product types. Ensure the response is valid JSON. If no books are found, return an empty JSON list []."""
     st.write(f"Debug: Sending prompt to OpenRouter: {prompt}")
     
     response = get_openrouter_response(prompt)
@@ -52,22 +53,23 @@ def search_related_products(product_name: str) -> List[Dict]:
     
     try:
         parsed_urls = json.loads(response)
-        if isinstance(parsed_urls, list) and parsed_urls:
+        if isinstance(parsed_urls, list):
             st.write(f"Debug: Successfully parsed URLs: {parsed_urls}")
-            return [{"url": url} for url in parsed_urls[:10]]
+            return [{"url": url} for url in parsed_urls[:10] if isinstance(url, str) and url.startswith("http")]
         else:
-            st.write("Debug: Response is not a valid list of URLs")
+            st.write("Debug: Response is not a valid list")
             return []
     except json.JSONDecodeError as e:
         st.error(f"Error parsing API response as JSON: {str(e)}")
         st.write("Debug: Attempting to extract URLs from plain text as fallback")
-        # Fallback: Try to extract URLs from plain text if JSON fails
-        import re
+        # Fallback: Extract URLs from plain text
         urls = re.findall(r'https?://[^\s"]+', response)
         if urls:
             st.write(f"Debug: Extracted URLs from text: {urls}")
             return [{"url": url} for url in urls[:10]]
-        return []
+        else:
+            st.write("Debug: No URLs found in response")
+            return []
     except Exception as e:
         st.error(f"Unexpected error: {str(e)}")
         return []
