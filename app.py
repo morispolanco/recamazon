@@ -33,7 +33,7 @@ def get_openrouter_response(prompt: str) -> str:
         st.error(f"Error connecting to OpenRouter: {str(e)}")
         return None
 
-# Updated function to search related books with improved handling
+# Updated function to search related books
 def search_related_products(product_name: str) -> List[Dict]:
     prompt = f"""Search Amazon for books related to '{product_name}'. Return a JSON list of up to 10 book URLs in this exact format: 
     ["url1", "url2", ...]. 
